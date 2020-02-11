@@ -1,5 +1,4 @@
-
-#install.packages("sqldf")
+install.packages("sqldf")
 library(sqldf)
 ################
 # Make fake Data Set
@@ -31,29 +30,29 @@ test_lst7 <- list()
 test_lst8 <- list()
 
 for( strata_i in 1:strat_n){
-test_lst1[[strata_i]] <- rep("test", test_mbr[strata_i])  
-test_lst2[[strata_i]] <- rep(strata_i, test_mbr[strata_i])
-test_lst3[[strata_i]] <- seq(from=1,to=test_mbr[strata_i], by=1)
-test_lst4[[strata_i]] <- sample(c(0,1), size=test_mbr[strata_i], replace=TRUE, prob=c(1-test_prop[strata_i], test_prop[strata_i]))
-
-test_lst5[[strata_i]] <- rep("control", control_mbr[strata_i])  
-test_lst6[[strata_i]] <- rep(strata_i, control_mbr[strata_i])
-test_lst7[[strata_i]] <- seq(from=1,to=control_mbr[strata_i], by=1)
-test_lst8[[strata_i]] <- sample(c(0,1), size=control_mbr[strata_i], replace=TRUE, prob=c(1-control_prop[strata_i], control_prop[strata_i]))
-
+  test_lst1[[strata_i]] <- rep("test", test_mbr[strata_i])  
+  test_lst2[[strata_i]] <- rep(strata_i, test_mbr[strata_i])
+  test_lst3[[strata_i]] <- seq(from=1,to=test_mbr[strata_i], by=1)
+  test_lst4[[strata_i]] <- sample(c(0,1), size=test_mbr[strata_i], replace=TRUE, prob=c(1-test_prop[strata_i], test_prop[strata_i]))
+  
+  test_lst5[[strata_i]] <- rep("control", control_mbr[strata_i])  
+  test_lst6[[strata_i]] <- rep(strata_i, control_mbr[strata_i])
+  test_lst7[[strata_i]] <- seq(from=1,to=control_mbr[strata_i], by=1)
+  test_lst8[[strata_i]] <- sample(c(0,1), size=control_mbr[strata_i], replace=TRUE, prob=c(1-control_prop[strata_i], control_prop[strata_i]))
+  
 }
 
 tbl_make_test <- as.data.frame(cbind(testarm=unlist(test_lst1), 
-                                        strata=unlist(test_lst2), 
-                                        client=unlist(test_lst3),
-                                        response=unlist(test_lst4)))
+                                     strata=unlist(test_lst2), 
+                                     client=unlist(test_lst3),
+                                     response=unlist(test_lst4)))
 
 tbl_make_control <- as.data.frame(cbind(testarm=unlist(test_lst5), 
-                                     strata=unlist(test_lst6), 
-                                     client=unlist(test_lst7),
-                                     response=unlist(test_lst8)))
+                                        strata=unlist(test_lst6), 
+                                        client=unlist(test_lst7),
+                                        response=unlist(test_lst8)))
 campaign_mbr_tbl <- rbind(tbl_make_test,tbl_make_control)
-                          
+
 campaign_mbr_tbl$strata <- as.numeric(as.character(campaign_mbr_tbl$strata))
 
 #str(campaign_mbr_tbl)
@@ -66,14 +65,14 @@ table(campaign_mbr_tbl$testarm, campaign_mbr_tbl$strata)
 #strata_summary_old <- strata_summary
 
 strata_summary <- sqldf("
-select strata
-, count(case when testarm = 'test' then client end) as test_mbr
-, count(case when testarm = 'control' then client end) as control_mbr
-, sum(case when testarm = 'test' then response else 0 end) as test_resp
-, sum(case when testarm = 'control' then response else 0 end) as control_resp
-from campaign_mbr_tbl
-group by strata
-      ")
+                        select strata
+                        , count(case when testarm = 'test' then client end) as test_mbr
+                        , count(case when testarm = 'control' then client end) as control_mbr
+                        , sum(case when testarm = 'test' then response else 0 end) as test_resp
+                        , sum(case when testarm = 'control' then response else 0 end) as control_resp
+                        from campaign_mbr_tbl
+                        group by strata
+                        ")
 
 strata_summary$test_prop <- strata_summary$test_resp / strata_summary$test_mbr
 strata_summary$control_prop <-  strata_summary$control_resp / strata_summary$control_mbr
@@ -213,7 +212,7 @@ for( strata_i in 1:strat_n){
   
   
   if(control_mbr_adj_act[strata_i] == "exclude strata"){
-  
+    
     test_mbr_ref[[strata_i]] <- seq(from=1,to=strata_summary[strata_i,c("test_mbr")], by=1)
     control_mbr_ref[[strata_i]] <- seq(from=1,to=strata_summary[strata_i,c("control_mbr")], by=1)
     
@@ -230,10 +229,10 @@ for( strata_i in 1:strat_n){
     
     test_mbr_filter[[strata_i]] <- rep("include", strata_summary[strata_i,c("test_mbr")])
     control_mbr_filter[[strata_i]] <- rep("include", strata_summary[strata_i,c("control_mbr_adj")])    
-
+    
     
   } else if( control_mbr_adj_act[strata_i] == "random sample" ) {
-
+    
     test_mbr_ref[[strata_i]] <- seq(from=1,to=strata_summary[strata_i,c("test_mbr")], by=1)
     control_mbr_ref[[strata_i]] <- seq(from=1,to=strata_summary[strata_i,c("control_mbr")], by=1)
     
@@ -242,7 +241,7 @@ for( strata_i in 1:strat_n){
     control_mbr_filter[[strata_i]] <- sample(c("exclude","include"), size=strata_summary[strata_i,c("control_mbr")], replace=TRUE, prob=c(1-sample_prob,sample_prob))   
     
   }
-
+  
 }
 
 
@@ -251,16 +250,16 @@ names(test_mbr_ref) <- seq(from=1,to=strat_n,by=1)
 names(control_mbr_ref) <- seq(from=1,to=strat_n,by=1)
 
 df_test <- data.frame( testarm = rep("test", sum(unlist(lapply(test_mbr_ref, length)))),
-                      strata = rep(names(test_mbr_ref), lapply(test_mbr_ref, length)),
-                      client = unlist(test_mbr_ref),
-                      client_filter = unlist(test_mbr_filter)
-                      )
+                       strata = rep(names(test_mbr_ref), lapply(test_mbr_ref, length)),
+                       client = unlist(test_mbr_ref),
+                       client_filter = unlist(test_mbr_filter)
+)
 
 df_control <- data.frame( testarm = rep("control", sum(unlist(lapply(control_mbr_ref, length)))),
-                       strata = rep(names(control_mbr_ref), lapply(control_mbr_ref, length)),
-                       client = unlist(control_mbr_ref),
-                       client_filter = unlist(control_mbr_filter)
-                      )
+                          strata = rep(names(control_mbr_ref), lapply(control_mbr_ref, length)),
+                          client = unlist(control_mbr_ref),
+                          client_filter = unlist(control_mbr_filter)
+)
 
 campaign_balance_filters <- rbind(df_test,df_control)
 
@@ -275,13 +274,13 @@ str(campaign_balance_filters)
 #table(campaign_mbr_tbl$strata, campaign_mbr_tbl$testarm)
 
 campaign_mbr_tbl_balanced <- sqldf("
-select  a.*, b.response
-from campaign_balance_filters a
-left join campaign_mbr_tbl b ON a.strata = b.strata AND a.client = b.client AND a.testarm = b.testarm
-")
+                                   select  a.*, b.response
+                                   from campaign_balance_filters a
+                                   left join campaign_mbr_tbl b ON a.strata = b.strata AND a.client = b.client AND a.testarm = b.testarm
+                                   ")
 
 
-df_campagin_balanced$strata <- as.numeric(df_campagin_balanced$strata)
+campaign_mbr_tbl_balanced$strata <- as.numeric(campaign_mbr_tbl_balanced$strata)
 
 
 #table(campaign_mbr_tbl$strata, campaign_mbr_tbl$testarm)
@@ -297,15 +296,15 @@ df_campagin_balanced$strata <- as.numeric(df_campagin_balanced$strata)
 
 
 strata_summary_balanced <- sqldf("
-                        select strata
-                        , count(case when testarm = 'test' then client end) as test_mbr
-                        , count(case when testarm = 'control' then client end) as control_mbr
-                        , sum(case when testarm = 'test' then response else 0 end) as test_resp
-                        , sum(case when testarm = 'control' then response else 0 end) as control_resp
-                        from campaign_mbr_tbl_balanced
-                        where client_filter = 'include' 
-                        group by strata
-                        ")
+                                 select strata
+                                 , count(case when testarm = 'test' then client end) as test_mbr
+                                 , count(case when testarm = 'control' then client end) as control_mbr
+                                 , sum(case when testarm = 'test' then response else 0 end) as test_resp
+                                 , sum(case when testarm = 'control' then response else 0 end) as control_resp
+                                 from campaign_mbr_tbl_balanced
+                                 where client_filter = 'include' 
+                                 group by strata
+                                 ")
 
 
 strata_summary_balanced$test_mbr_dist <- unlist(lapply(strata_summary_balanced$test_mbr , function(x) { x/ sum(strata_summary_balanced$test_mbr)}))
@@ -353,8 +352,8 @@ prop1 <- prop_res$estimate[1]
 prop2 <- prop_res$estimate[2]
 
 power_prop_res <- power.prop.test(n_pergrp, prop1, prop2, sig.level = 0.1,
-                power = NULL,
-                alternative = c("two.sided"))
+                                  power = NULL,
+                                  alternative = c("two.sided"))
 
 ## output for power (inverse of risk of false negatives) looking for >= 0.8
 power_prop_res
@@ -370,29 +369,29 @@ powers <- rep(0, nrow(strata_summary_balanced))
 
 for( strata_i in 1:nrow(strata_summary_balanced)){
   strata_summary_balanced[strata_i,]
-
-x <- as.numeric(strata_summary_balanced[strata_i,c("test_resp","control_resp")]) #success or failure
-n <- as.numeric(as.list(strata_summary_balanced[strata_i,c("test_mbr","control_mbr")]))  # total samples
-
-prop_res <- prop.test(x, n, p = NULL
-                      , alternative = "two.sided"
-                      ,conf.level = 0.9
-                      ,correct = FALSE)
-
-pvals[strata_i] <- round(prop_res$p.value,5)
-
-
-n_pergrp <- sum(n)/2  # assume even distribution - farther from equal the lower POWER
-prop1 <- prop_res$estimate[1]
-prop2 <- prop_res$estimate[2]
-
-power_prop_res <- power.prop.test(n_pergrp, prop1, prop2, sig.level = 0.1,
-                power = NULL,
-                alternative = c("two.sided"))
-                
-
-powers[strata_i] <- round(power_prop_res$power,5) 
-
+  
+  x <- as.numeric(strata_summary_balanced[strata_i,c("test_resp","control_resp")]) #success or failure
+  n <- as.numeric(as.list(strata_summary_balanced[strata_i,c("test_mbr","control_mbr")]))  # total samples
+  
+  prop_res <- prop.test(x, n, p = NULL
+                        , alternative = "two.sided"
+                        ,conf.level = 0.9
+                        ,correct = FALSE)
+  
+  pvals[strata_i] <- round(prop_res$p.value,5)
+  
+  
+  n_pergrp <- sum(n)/2  # assume even distribution - farther from equal the lower POWER
+  prop1 <- prop_res$estimate[1]
+  prop2 <- prop_res$estimate[2]
+  
+  power_prop_res <- power.prop.test(n_pergrp, prop1, prop2, sig.level = 0.1,
+                                    power = NULL,
+                                    alternative = c("two.sided"))
+  
+  
+  powers[strata_i] <- round(power_prop_res$power,5) 
+  
 }
 
 strata_summary_balanced$pvals <- pvals
